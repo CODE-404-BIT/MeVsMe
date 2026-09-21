@@ -1,0 +1,32 @@
+DAILY MODEL — {{ report.report_date }}
+
+{% macro combo_block(label, combo) -%}
+{{ label }}
+{% if combo %}
+{% for leg in combo.legs %}- {{ leg.selection }} | {{ leg.fixture }} | odds {{ '%.2f'|format(leg.odds) }} | model P {{ '%.1f'|format(leg.probability * 100) }}%
+{% endfor %}
+Combined odds: {{ '%.2f'|format(combo.total_odds) }}
+Model probability: {{ '%.1f'|format(combo.joint_probability * 100) }}%
+Estimated loss risk: {{ '%.1f'|format(combo.risk * 100) }}%
+Safety rating: {{ '%.1f'|format(combo.safety_rating) }}/10 (0 = risk, 10 = safest)
+Estimated EV: {{ '%+.1f'|format(combo.ev * 100) }}%
+Minimum acceptable odds (+5% EV floor): {{ '%.2f'|format(combo.minimum_odds) }}
+Pattern strength: {{ '%.0f'|format(combo.avg_pattern_strength * 100) }}/100
+Data quality: {{ '%.0f'|format(combo.avg_data_quality * 100) }}/100
+WHY SELECTED
+{% for leg in combo.legs %}- {{ leg.selection }}: Model P {{ '%.1f'|format(leg.probability * 100) }}%, fair odds {{ '%.2f'|format(leg.fair_odds) }}, offered {{ '%.2f'|format(leg.odds) }}, Leg EV {{ '%+.1f'|format(leg.ev * 100) }}%, pattern {{ '%.0f'|format(leg.pattern_strength * 100) }}/100, data {{ '%.0f'|format(leg.data_quality * 100) }}/100.
+{% endfor %}
+Main risk: model uncertainty averages ±{{ '%.1f'|format(combo.avg_uncertainty * 100) }} percentage points per leg.
+{% else %}No valid combination available from current data.
+{% endif %}
+{%- endmacro %}
+
+{{ combo_block('BEST 2×', two) }}
+
+{{ combo_block('BEST 3×', three) }}
+
+SCAN SUMMARY
+Matches scanned: {{ report.scanned_matches }}
+Markets scanned: {{ report.scanned_markets }}
+Valid candidates: {{ report.valid_candidates }}
+Generated: {{ report.generated_at.isoformat() }}

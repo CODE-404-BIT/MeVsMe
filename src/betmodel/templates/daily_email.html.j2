@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Daily Model Picks</title></head>
+<body style="font-family:Arial,sans-serif;max-width:760px;margin:auto;line-height:1.45">
+  <h1>Daily Model — {{ report.report_date }}</h1>
+  {% for label, combo in [('BEST 2×', two), ('BEST 3×', three)] %}
+    <section style="border:1px solid #ddd;padding:16px;margin:16px 0;border-radius:8px">
+      <h2>{{ label }}</h2>
+      {% if combo %}
+        <ul>
+        {% for leg in combo.legs %}
+          <li><strong>{{ leg.selection }}</strong> — {{ leg.fixture }} — {{ '%.2f'|format(leg.odds) }} (model {{ '%.1f'|format(leg.probability*100) }}%)</li>
+        {% endfor %}
+        </ul>
+        <p><strong>Combined odds:</strong> {{ '%.2f'|format(combo.total_odds) }}<br>
+        <strong>Model probability:</strong> {{ '%.1f'|format(combo.joint_probability*100) }}%<br>
+        <strong>Estimated loss risk:</strong> {{ '%.1f'|format(combo.risk*100) }}%<br>
+        <strong>Safety rating:</strong> {{ '%.1f'|format(combo.safety_rating) }}/10 (0 = risk, 10 = safest)<br>
+        <strong>Estimated EV:</strong> {{ '%+.1f'|format(combo.ev*100) }}%<br>
+        <strong>Minimum acceptable odds (+5% EV floor):</strong> {{ '%.2f'|format(combo.minimum_odds) }}</p>
+        <p><strong>Pattern strength:</strong> {{ '%.0f'|format(combo.avg_pattern_strength*100) }}/100<br>
+        <strong>Data quality:</strong> {{ '%.0f'|format(combo.avg_data_quality*100) }}/100</p>
+        <p><strong>Why selected</strong></p>
+        <ul>
+        {% for leg in combo.legs %}
+          <li>{{ leg.selection }}: model {{ '%.1f'|format(leg.probability*100) }}%, fair odds {{ '%.2f'|format(leg.fair_odds) }}, offered {{ '%.2f'|format(leg.odds) }}, leg EV {{ '%+.1f'|format(leg.ev*100) }}%, pattern {{ '%.0f'|format(leg.pattern_strength*100) }}/100, data {{ '%.0f'|format(leg.data_quality*100) }}/100.</li>
+        {% endfor %}
+        </ul>
+        <p><strong>Main risk:</strong> model uncertainty averages ±{{ '%.1f'|format(combo.avg_uncertainty*100) }} percentage points per leg.</p>
+      {% else %}
+        <p>No valid combination available from current data.</p>
+      {% endif %}
+    </section>
+  {% endfor %}
+  <h2>Scan summary</h2>
+  <p>Matches scanned: {{ report.scanned_matches }}<br>
+  Markets scanned: {{ report.scanned_markets }}<br>
+  Valid candidates: {{ report.valid_candidates }}</p>
+</body>
+</html>

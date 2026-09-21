@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: daily-football-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install '.[cloud]'
+    startCommand: gunicorn betmodel.cloud_wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --access-logfile /dev/null
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DASHBOARD_PASSWORD_HASH
+        sync: false
+      - key: DASHBOARD_SECRET_KEY
+        generateValue: true
+      - key: API_FOOTBALL_KEY
+        sync: false
+      - key: BETMODEL_ROOT
+        value: /tmp/betmodel
+      - key: OPENBLAS_NUM_THREADS
+        value: '1'
+      - key: OMP_NUM_THREADS
+        value: '1'

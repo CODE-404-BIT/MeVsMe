@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daily Model · Match Centre</title><link rel="stylesheet" href="/app.css"></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="Daily Model home"><span class="brand-icon">D<span>↗</span></span><span>DAILY MODEL<small>FOOTBALL INTELLIGENCE</small></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav aria-label="Main navigation">
+    <button class="nav-item active" data-tab="matches"><span>▦</span> Matches of the Day <i>01</i></button>
+    <button class="nav-item" data-tab="2"><span>↗</span> 2× Combinations <i>02</i></button>
+    <button class="nav-item" data-tab="3"><span>⇗</span> 3× Combinations <i>03</i></button>
+  </nav>
+  <div class="sidebar-note"><div class="pulse-dot"></div> YOUR LOCAL WORKSPACE<p>Your data. Your analysis.<br>Running on this computer.</p></div>
+  <button class="nav-item settings-trigger"><span>⚙</span> API Settings</button>
+  <div class="sidebar-foot">TRANSPARENT BY DESIGN <span>v0.1</span></div>
+</aside>
+<main>
+  <header class="topbar"><div class="breadcrumb">WORKSPACE <span>/</span> <b id="crumb">MATCH CENTRE</b></div><div class="connection"><span class="pulse-dot"></span><span id="connection">Local engine online</span></div></header>
+  <section class="page-head"><div><div class="eyebrow">THE GAME, IN NUMBERS</div><h1 id="page-title">Your daily match centre<span>.</span></h1><p id="page-subtitle">Explore the fixtures. Check the evidence. Find your next angle.</p></div><div class="date-box"><label for="date">MATCH DAY</label><input type="date" id="date"><small id="timezone"></small></div></section>
+  <section class="hero"><div><div class="hero-tag"><span class="pulse-dot"></span> MATCHDAY WORKSPACE</div><h2>Every fixture.<br>A clearer picture.</h2><p>Refresh today's schedule, explore available markets,<br class="desktop"> and build combinations backed by your loaded history.</p><button class="primary" id="load-matches">Load Matches of the Day <span>↻</span></button><small id="last-sync">Showing locally saved data</small></div><div class="pitch" aria-hidden="true"><div class="pitch-line"></div><div class="pitch-circle"></div><div class="goal left"></div><div class="goal right"></div><span class="player one"></span><span class="player two"></span><span class="player three"></span><span class="player four"></span><div class="pitch-caption">READ THE GAME<br><b>BEYOND THE SCORE.</b></div></div></section>
+  <section class="metrics" aria-label="Match statistics"><article><span>FIXTURES LOADED</span><strong id="metric-matches">—</strong><small>For your selected local day</small></article><article><span>UPCOMING MATCHES</span><strong id="metric-upcoming">—</strong><small>Scheduled, not yet started</small></article><article><span>WITH SAVED ODDS</span><strong id="metric-odds">—</strong><small>Matches with market records</small></article><article><span>HISTORY COVERED</span><strong id="metric-ready">—</strong><small>Both teams found in history</small></article></section>
+  <div id="notice" class="notice" role="status" aria-live="polite"><span class="status-light"></span><span id="notice-text">Loading your workspace…</span></div>
+  <section class="content-section">
+    <div class="section-heading"><div><div class="eyebrow" id="section-eyebrow">THE DAILY SLATE</div><h2 id="section-title">Matches of the Day</h2></div><div class="segmented" aria-label="Results view"><button data-tab="matches" class="active">Matches</button><button data-tab="2">2×</button><button data-tab="3">3×</button></div></div>
+    <div id="match-controls" class="filters"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search teams or leagues…" aria-label="Search teams or leagues"></label><select id="league" aria-label="Filter by league"><option value="">Select league</option></select><select id="match-status" aria-label="Filter by match status"><option value="">All statuses</option><option value="SCHEDULED">Scheduled</option><option value="LIVE">Live</option><option value="FINISHED">Finished</option><option value="POSTPONED">Postponed</option><option value="CANCELLED">Cancelled</option></select><label class="check"><input id="safest-only" type="checkbox"> Safest only</label></div>
+    <div id="combo-controls" class="filters" hidden><p>Ranked by model score · Up to 4 legs · Separate matches</p><label class="check"><input id="positive" type="checkbox"> Only +5% EV or higher</label><button class="primary compact" id="analyze">Analyze saved matches <span>↗</span></button></div>
+    <div class="results-caption"><span id="result-count"></span><span id="result-context">Kickoff times are local</span></div>
+    <div id="results" class="match-grid"></div>
+    <div class="pagination" id="pagination" hidden><button class="secondary" id="prev">← Previous</button><span id="page-number"></span><button class="secondary" id="next">Next →</button></div>
+  </section>
+  <footer><span>DAILY MODEL <b> / </b> Evidence before intuition.</span><span>Provider coverage varies. A model estimate is not a guaranteed outcome.</span></footer>
+</main>
+<dialog id="settings"><form id="settings-form"><div class="dialog-head"><div><div class="eyebrow">CONNECT YOUR DATA</div><h2>API Settings</h2></div><button type="button" class="icon-button" id="close-settings" aria-label="Close settings">×</button></div><p>Connect API-FOOTBALL to load fixtures and odds. You can browse saved data without a key.</p><label for="api-key">API-FOOTBALL KEY</label><input id="api-key" type="password" autocomplete="off" placeholder="Paste your API key"><p class="hint">Stored in this server session only. Never included in reports or saved in your browser.</p><p id="key-state"></p><button class="primary" type="submit">Save key for this session <span>→</span></button></form></dialog>
+<script src="/app.js" defer></script>
+<script src="/odds-only.js" defer></script>
+<script src="/insights.js" defer></script>
+<script src="/performance.js" defer></script>
+<script src="/prediction-history.js" defer></script>
+<script src="/match-analysis.js" defer></script>
+<script src="/accuracy-policy.js" defer></script>
+</body></html>

@@ -1,0 +1,15 @@
+.worktrees/
+__pycache__/
+.pytest_cache/
+.venv/
+data/
+*.pyc
+.env
+.env.*
+*.db
+*.sqlite*
+*.log
+build/
+dist/
+*.egg-info/
+.superpowers/
