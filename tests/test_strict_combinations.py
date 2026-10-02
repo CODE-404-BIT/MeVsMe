@@ -93,3 +93,33 @@ def test_analyze_has_no_unpriced_fallback(tmp_path,monkeypatch):
     items,report=analyze_evidence(app.engine,(NOW,NOW+timedelta(days=1)),NOW)
     assert items == {'2':[],'3':[]}
     assert 'historical_slips' not in report
+
+
+def test_historical_leads_survive_missing_prices_and_model(tmp_path,monkeypatch):
+    from betmodel.multisport_recommendations import recommendation_payload
+    from betmodel.dashboard import utc_window
+    app,evidence=seeded(tmp_path)
+    evidence['historical_matches']=40
+    monkeypatch.setattr('betmodel.team_insights.evidence_for',lambda *a,**kw:evidence)
+    with session_factory(app.engine).begin() as session:
+        session.query(OddsSnapshot).delete()
+    app.analyze('2026-10-02',0,0,NOW)
+    window=utc_window('2026-10-02',0,0)
+    payload=recommendation_payload(app.engine,window,NOW)
+    assert payload['items']==[]
+    assert len(payload['historical_suggestions'])==2
+    assert payload['analysis_diagnostics']['upcoming_fixtures']==2
+    assert payload['analysis_diagnostics']['fixtures_with_perfect_records']==2
+    assert payload['analysis_diagnostics']['priced_markets']==0
+    assert not recommendation_payload(app.engine,window,NOW,sport='basketball')['historical_suggestions']
+    with session_factory(app.engine).begin() as session:
+        session.get(Fixture,evidence['matches'][0]['fixture_id']).status='CANCELLED'
+    assert len(recommendation_payload(app.engine,window,NOW)['historical_suggestions'])==1
+
+
+def test_empty_analysis_distinguishes_no_fixtures_from_no_patterns(tmp_path):
+    from betmodel.accuracy_policy import analyze_evidence
+    app=Dashboard(tmp_path)
+    _,report=analyze_evidence(app.engine,(NOW,NOW+timedelta(days=1)),NOW)
+    assert report['diagnostics']['loaded_fixtures']==0
+    assert 'No fixtures are loaded' in report['reason']

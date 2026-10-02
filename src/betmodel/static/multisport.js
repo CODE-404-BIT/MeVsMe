@@ -39,6 +39,7 @@ async function renderSportPicks(){
   $('results').innerHTML='<p class="evidence-note">Ranked picks require tested probability estimates and sufficient recent history. A 100% historical record is shown separately in Team Insights and does not guarantee a future win. Coverage depends on connected providers and free quotas.</p>'+
     `<details id="sport-coverage" open><summary>Sources and coverage by sport</summary>${coverage}</details>`+
     ((data.items||[]).length?data.items.map(confidenceCard).join(''):empty('No validated picks available','Refresh all sports to discover upcoming events. Missing history or failed validation will not be replaced by invented percentages.'))+
+    ((data.historical_suggestions||[]).length?`<section class="historical-suggestions"><h2>100% historical suggestions</h2><p>Individual selections from observed records, independent of model validation. These are not priced 2x/3x combinations or guaranteed wins.</p>${suggestionCards(data.historical_suggestions)}</section>`:'')+
     ((data.research_estimates||[]).length?`<details><summary>${data.research_estimates.length} research estimates — not validated picks</summary>${data.research_estimates.slice(0,20).map(r=>`<p>${esc(r.home)} vs ${esc(r.away)} · ${esc(r.selection)} · ${pct(r.probability)} baseline estimate. Validation has not passed.</p>`).join('')}</details>`:'');
   const key=JSON.stringify(params());
   if(data.stale&&!state.busy&&Date.now()-(attemptedDiscovery.get(key)||0)>1800000){

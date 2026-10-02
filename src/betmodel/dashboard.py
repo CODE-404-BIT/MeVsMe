@@ -376,6 +376,10 @@ class Dashboard:
         with self.lock:
             self.results={'2':[],'3':[]};self.analysis=None
         results,analysis=analyze_evidence(self.engine,utc_window(day,offset,end_offset),now)
+        from .state_store import save_state
+        save_state(self.engine,'historical-suggestions:'+utc_window(day,offset,end_offset)[0].isoformat(),
+            {'matches':analysis['suggestions'],'diagnostics':analysis['diagnostics'],
+             'window_end':utc_window(day,offset,end_offset)[1].isoformat()})
         with self.lock:
             self.results=results
             self.analysis=dict(analysis,date=day,offset=offset,end_offset=end_offset)

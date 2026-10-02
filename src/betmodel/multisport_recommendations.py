@@ -241,9 +241,14 @@ def recommendation_payload(engine,window,now,sport='all'):
     def active(row):
         event=current.get(row['event_key'])
         return bool(event and event['status']=='SCHEDULED' and utc(event['start'])==utc(row['start']) and utc(event['start'])>now)
+    historical=load_state(engine,'historical-suggestions:'+window[0].isoformat()) or {}
+    if historical.get('window_end')!=window[1].isoformat():historical={}
+    from .historical_suggestions import suggestions
+    leads=[m for m in suggestions(historical if 'matches' in historical else {'matches':[]},now)
+        if sport in ('all','football') and active({'event_key':'football:'+str(m['fixture_id']),'start':m['kickoff']})]
     rows=[r for r in saved['rows'] if (sport=='all' or r['sport']==sport) and active(r)]
     from .multisport_settlement import sport_performance
-    return dict(items=attach_prices(engine,rank_picks(rows,now),now),performance=sport_performance(engine),research_estimates=[r for r in saved.get('research_estimates',[])
+    return dict(historical_suggestions=leads,analysis_diagnostics=historical.get('diagnostics',{}),items=attach_prices(engine,rank_picks(rows,now),now),performance=sport_performance(engine),research_estimates=[r for r in saved.get('research_estimates',[])
         if (sport=='all' or r['sport']==sport) and active(r)],coverage=coverage,
         updated_at=saved.get('updated_at'),stale=not saved.get('updated_at') or
         now-utc(saved['updated_at'])>timedelta(minutes=30))

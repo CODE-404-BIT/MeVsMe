@@ -35,12 +35,14 @@ with sync_playwright() as p:
             'evidence_confidence':8.2,'sample_home':20,'sample_away':21,'validated':True,
             'validation':{'matches':110,'brier':.19,'baseline_brier':.24},'form_home':[1,1,0],
             'form_away':[0,1,0],'latest_home':'2099-10-01','latest_away':'2099-10-01'}],
-        'research_estimates':[],'stale':False,'coverage':{'tennis':{'status':'history_source_required'}}}))
+        'historical_suggestions':[{'home':'Historical Home','away':'Historical Away','competition':'E0','patterns':[{'hits':5,'trials':5,'label':'Over 0.5 goals','group':'Combined','from':'2026-09-01','to':'2026-10-01'}]}],'research_estimates':[],'stale':False,'coverage':{'tennis':{'status':'history_source_required'}}}))
     page.evaluate("setTab('recommendations')")
     page.wait_for_selector('.pick-scorecard')
     assert '72' in page.locator('.pick-scorecard').inner_text()
     assert '8.2' in page.locator('.pick-scorecard').inner_text()
     assert 'history' in page.locator('#sport-coverage').inner_text().lower()
+    assert 'Historical Home' in page.locator('#results').text_content()
+    assert '5/5' in page.locator('#results').text_content()
     pattern={'hits':5,'trials':5,'label':'Over 0.5 goals','group':'All matches','from':'2026-09-01','to':'2026-10-01'}
     leg={'fixture':'A v B','market':'Goals','selection':'Over 0.5','odds':1.45,'bookmaker':'Book',
          'updated':'2026-10-02T10:00:00Z','patterns':[pattern],

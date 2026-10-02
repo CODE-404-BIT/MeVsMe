@@ -79,13 +79,24 @@ def analyze_evidence(engine,window,now=None):
     from .team_insights import evidence_for
     from .historical_suggestions import suggestions,priced_patterns,build_combinations,POLICY
     evidence=evidence_for(engine,window,forecasts=False,all_competitions=True)
+    from datetime import datetime,timezone
+    now=now or datetime.now(timezone.utc)
     leads=suggestions(evidence,now)
     rows=priced_patterns(engine,evidence,now)
     result=build_combinations(rows)
-    reason=(f'{len(leads)} fixtures have matching 100% historical records; {len(rows)} exact markets have fresh prices. '
+    upcoming=[m for m in evidence['matches'] if m.get('status')=='SCHEDULED' and m.get('kickoff')
+        and datetime.fromisoformat(m['kickoff'].replace('Z','+00:00'))>now]
+    diagnostics=dict(loaded_fixtures=len(evidence['matches']),upcoming_fixtures=len(upcoming),
+        historical_matches=evidence.get('historical_matches',0),
+        fixtures_with_history=sum(any(t.get('matches',0) for t in m.get('individual',[])) for m in upcoming),
+        fixtures_with_perfect_records=len(leads),priced_markets=len(rows))
+    prefix=('No fixtures are loaded for the selected date. Refresh all sports. ' if not evidence['matches'] else
+        'No future scheduled fixtures remain on the selected date. Choose an upcoming date. ' if not upcoming else
+        f"Scanned {len(upcoming)} upcoming fixtures; {diagnostics['fixtures_with_history']} have matched team history. ")
+    reason=(prefix+f'{len(leads)} fixtures have matching 100% historical records; {len(rows)} exact markets have fresh prices. '
         'Suggestions do not require a model forecast or EV. Priced combinations require separate fixtures, '
         'one bookmaker and prices near the selected target. Missing odds do not hide historical suggestions. '
         'Search is limited to 32 priced selections per bookmaker, up to four legs and 20 combinations per target.')
     return result,dict(valid_candidates=len(rows),scanned_markets=len(rows),search_candidates=min(32,len(rows)),
-        limited=True,reason=reason,policy=POLICY,suggestions=leads,
+        limited=True,reason=reason,policy=POLICY,suggestions=leads,diagnostics=diagnostics,
         evidence_combinations={},other_combinations={})
