@@ -1,0 +1,27 @@
+from playwright.sync_api import sync_playwright, expect
+with sync_playwright() as p:
+    browser=p.chromium.launch(channel='chrome',headless=True)
+    page=browser.new_page(viewport={'width':1440,'height':1000},timezone_id='Australia/Sydney')
+    errors=[]
+    page.on('pageerror',lambda e:errors.append(str(e)))
+    page.goto('http://127.0.0.1:8765')
+    page.locator('[data-tab="insights"]').click()
+    page.locator('#team-query').fill('Arsenal vs Chelsea')
+    page.get_by_role('button',name='Search evidence').click()
+    expect(page.locator('.match-evidence')).to_have_count(1,timeout=30000)
+    expect(page.locator('.team-evidence').first).to_contain_text('20')
+    expect(page.locator('.patterns-table')).to_contain_text('100.0% HISTORICAL')
+    expect(page.locator('.forecast-block')).to_contain_text('Home')
+    page.screenshot(path='data/previews/team-insights.png',full_page=True)
+    print('Team insights: real Arsenal/Chelsea history, perfect-record patterns and forecast rendered.')
+    page.locator('[data-tab="recommendations"]').click()
+    expect(page.locator('#results')).to_contain_text('No evidence-supported priced picks yet',timeout=30000)
+    page.locator('[data-tab="insights"]').click()
+    page.locator('#team-query').fill('')
+    page.get_by_role('button',name='Search evidence').click()
+    expect(page.locator('#results')).not_to_contain_text('Checking historical evidence',timeout=30000)
+    page.set_viewport_size({'width':390,'height':844})
+    assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+    assert not errors,errors
+    print('Daily fallback, recommendations empty state, mobile layout and JavaScript checks passed.')
+    browser.close()

@@ -77,8 +77,8 @@ def select_combinations(rows, limit=5):
 
 def analyze_evidence(engine,window,now=None):
     from .team_insights import evidence_for
-    from .historical_suggestions import suggestions,priced_patterns,build_combinations,build_historical_slips,POLICY
-    evidence=evidence_for(engine,window,forecasts=False)
+    from .historical_suggestions import suggestions,priced_patterns,build_combinations,POLICY
+    evidence=evidence_for(engine,window,forecasts=False,all_competitions=True)
     leads=suggestions(evidence,now)
     rows=priced_patterns(engine,evidence,now)
     result=build_combinations(rows)
@@ -88,4 +88,4 @@ def analyze_evidence(engine,window,now=None):
         'Search is limited to 32 priced selections per bookmaker, up to four legs and 20 combinations per target.')
     return result,dict(valid_candidates=len(rows),scanned_markets=len(rows),search_candidates=min(32,len(rows)),
         limited=True,reason=reason,policy=POLICY,suggestions=leads,
-        historical_slips=build_historical_slips(evidence,now),evidence_combinations={},other_combinations={})
+        evidence_combinations={},other_combinations={})

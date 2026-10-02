@@ -1,5 +1,13 @@
 # Free cloud deployment
 
+## October 2 multi-sport update (not yet deployed)
+
+Local source now includes sport-aware tables and optional `API_BASKETBALL_KEY`, `API_HOCKEY_KEY`, and `ODDS_API_KEY` secrets. Enable only the providers' free plans, then add values privately in Render Environment. Existing authentication and `DATABASE_URL` remain in place. Startup creates additive tables; do not rerun the original SQLite import into your populated Neon database. Take a production backup before deploying schema changes.
+
+The new Recommended Picks page starts a guarded refresh on access when its cached results are stale. It ranks only supported model estimates that pass chronological validation and reports missing coverage. Tennis historical data remains an unresolved dependency; see [source coverage](multi-sport-sources.md). Strict 2x/3x views no longer show unpriced fallback slips.
+
+October update verification: 213 tests passed with PostgreSQL enabled. A Linux/Python 3.12 rehearsal under a 512 MiB limit peaked at 356.3 MiB cgroup usage on 1,608 synthetic events. Real provider account checks and actual live acceptance remain pending. Prior verification results below apply to the September deployment preparation, not this new implementation.
+
 Status: local cloud preparation and verification completed on 2026-09-19. **Not yet published**: Render/Neon access and a private source repository are not connected.
 
 Use **Render Free** for the private dashboard and **Neon Free** for the database. The Windows launcher continues using `data/app.db`. Cloud data uses PostgreSQL and survives web-service restarts. Local and cloud copies do not automatically synchronise.

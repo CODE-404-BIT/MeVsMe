@@ -15,6 +15,12 @@ services:
         generateValue: true
       - key: API_FOOTBALL_KEY
         sync: false
+      - key: API_BASKETBALL_KEY
+        sync: false
+      - key: API_HOCKEY_KEY
+        sync: false
+      - key: ODDS_API_KEY
+        sync: false
       - key: BETMODEL_ROOT
         value: /tmp/betmodel
       - key: OPENBLAS_NUM_THREADS

@@ -1,0 +1,22 @@
+from playwright.sync_api import sync_playwright,expect
+with sync_playwright() as p:
+    browser=p.chromium.launch(channel='chrome',headless=True)
+    page=browser.new_page(viewport={'width':1440,'height':1000},timezone_id='Australia/Sydney')
+    errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    page.goto('http://127.0.0.1:8765')
+    page.locator('#date').fill('2026-09-18');page.locator('#day-basis').select_option('utc')
+    expect(page.locator('.match-team-button').first).to_be_visible(timeout=20000)
+    expect(page.locator('#result-count')).to_contain_text('matches with history')
+    page.locator('.match-team-button').first.click()
+    expect(page.locator('#results')).to_contain_text('Bet analysis for this match',timeout=30000)
+    expect(page.locator('.team-evidence')).to_have_count(2)
+    page.locator('.sidebar [data-tab="2"]').click()
+    expect(page.locator('#results')).not_to_contain_text('Analyzing saved matches',timeout=30000)
+    expect(page.locator('#result-count')).to_contain_text('combinations',timeout=30000)
+    page.locator('.sidebar [data-tab="3"]').click()
+    expect(page.locator('#result-count')).to_contain_text('combinations')
+    print(page.locator('#result-count').inner_text())
+    page.set_viewport_size({'width':390,'height':844})
+    assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+    assert not errors,errors
+    browser.close()

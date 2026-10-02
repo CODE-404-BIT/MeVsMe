@@ -3,3 +3,4 @@
 .historical-slips { grid-column: 1 / -1; min-width: 0; }
 
 .historical-slips .combo-top { flex-wrap: wrap; gap: 12px; }
+.sport-pick{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:24px;padding:24px;border:1px solid #dce5e1;border-radius:16px;background:#fff;margin:16px 0}.pick-details{min-width:0;overflow-wrap:anywhere}.pick-details h3{margin:10px 0}.pick-details p{line-height:1.6}.pick-scorecard{display:flex;flex-direction:column;gap:12px;border-radius:12px;background:#edf5f0;padding:22px}.pick-scorecard span{font-size:11px;letter-spacing:.06em}.pick-scorecard strong{font-size:36px}.pick-scorecard b{font-size:26px}.pick-scorecard small{line-height:1.5}#sport-coverage{padding:16px;border:1px solid #dce5e1;border-radius:12px;overflow-wrap:anywhere}@media(max-width:640px){.sport-pick{grid-template-columns:minmax(0,1fr);padding:16px;gap:12px}.pick-scorecard{padding:16px}}

@@ -32,7 +32,9 @@ def application_tables():
     from .performance import saved_combinations
     from .learning import attempts
     from .state_store import state
-    return list(Base.metadata.sorted_tables)+[saved_combinations,attempts,state]
+    from .multisport_store import events, quotes, snapshots
+    from .multisport_settlement import settlements
+    return list(Base.metadata.sorted_tables)+[saved_combinations,attempts,state,events,quotes,snapshots,settlements]
 
 
 def init_db(engine: Engine) -> None:

@@ -206,7 +206,7 @@ class Dashboard:
 
     def start(self, kind, day, offset, end_offset, query=''):
         utc_window(day, offset, end_offset)
-        if kind not in {"sync", "analyze", "research", "results", "learn"}:
+        if kind not in {"sync", "analyze", "research", "results", "learn", "discover"}:
             raise ValueError("Unknown action")
         with self.lock:
             if self.job["state"] == "running":
@@ -224,7 +224,7 @@ class Dashboard:
                 self._restore_checkpoint()
                 messages = {'research':'Researching historical data…','sync':'Refreshing fixtures…',
                             'results':'Checking saved predictions against final results…','learn':'Evaluating model updates on later unseen results…',
-                            'analyze':'Analyzing saved markets…'}
+                            'analyze':'Analyzing saved markets…','discover':'Discovering events across sports…'}
                 self.job = {"state": "running", "message":messages[kind], "kind": kind}
                 self.job['started_at'] = datetime.now(timezone.utc).isoformat()
                 self._checkpoint()
@@ -243,7 +243,8 @@ class Dashboard:
 
     def _work(self, kind, day, offset, end_offset, query=''):
         try:
-            if kind == 'results':message = self.refresh_results()
+            if kind == 'discover':message = self.discover(day,offset,end_offset)
+            elif kind == 'results':message = self.refresh_results()
             elif kind == 'learn':message = self.learn()
             elif kind == 'research':message = self.research(day, offset, end_offset, query)
             elif kind == 'sync':message = self.sync(day, offset, end_offset)
@@ -271,6 +272,33 @@ class Dashboard:
                 if self._job_guard:
                     self._job_guard.__exit__(None,None,None)
                     self._job_guard = None
+
+    def discover(self, day, offset, end_offset):
+        from .multisport_refresh import refresh_sports
+        from .multisport_recommendations import prepare_recommendations
+        from .state_store import load_state,save_state
+        now=datetime.now(timezone.utc)
+        window=utc_window(day,offset,end_offset)
+        if window[1]<=now:raise ValueError('Choose today or an upcoming date for new picks')
+        def progress(message):
+            with self.lock:self.job['message']=message
+        football_message=''
+        if self.key:
+            try:
+                progress('Refreshing football fixtures and available prices')
+                self.sync(day,offset,end_offset)
+                last=load_state(self.engine,'automatic-football-research') or {}
+                if not last.get('at') or now-datetime.fromisoformat(last['at'])>timedelta(hours=6):
+                    self.research(day,offset,end_offset)
+                    save_state(self.engine,'automatic-football-research',{'at':now.isoformat()})
+            except (ValueError,RuntimeError,httpx.HTTPError):football_message=' Football refresh was incomplete; check its provider quota.'
+        credentials={'basketball':os.getenv('API_BASKETBALL_KEY',''),'icehockey':os.getenv('API_HOCKEY_KEY',''),
+                     'odds':os.getenv('ODDS_API_KEY','')}
+        refresh_sports(self.engine,window,credentials,now,progress)
+        progress('Evaluating history and ranking supported picks')
+        count=prepare_recommendations(self.engine,window,now)
+        self.analyze(day,offset,end_offset,now)
+        return f'Discovery complete: {count} validated picks. See each sport’s coverage status.'+football_message
 
     def research(self, day, offset, end_offset, query=''):
         from .history_research import research_history
@@ -358,7 +386,12 @@ class Dashboard:
         if target not in {"2", "3"} or page < 1 or not 1 <= size <= 50:
             raise ValueError("Invalid results page")
         with self.lock:
-            rows = self.results[target]
+            from .historical_suggestions import current_combinations
+            rows = current_combinations(self.engine,self.results[target],datetime.now(timezone.utc))
+            if self.analysis:
+                from .multisport_recommendations import current_sport_combinations
+                window=utc_window(self.analysis['date'],self.analysis['offset'],self.analysis['end_offset'])
+                rows=rows+current_sport_combinations(self.engine,window,datetime.now(timezone.utc))[target]
             if positive:
                 rows = [r for r in rows if r.get("ev") is not None and r["ev"] >= 0.05]
             return {"items": rows[(page-1)*size:page*size], "total": len(rows), "page": page,

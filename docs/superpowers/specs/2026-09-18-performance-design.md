@@ -1,0 +1,7 @@
+# Performance tracking and measured learning
+
+Approved in chat on 2026-09-18. Add persistent pre-kickoff combination records, automatic settlement from verified final scores, top-right separate 2x/3x performance, and evidence-gated model updates. Generated combinations are not actual placed bets. Odds-only and model estimates remain separate cohorts; no past cards are reconstructed as prospective predictions.
+
+Record first-seen unique selections, bookmaker, line, frozen prices/probabilities and model version. Refreshing or later odds changes must not duplicate or rewrite a prediction. Settle full-time goal markets, including Asian quarter-lines by equal split stakes. Unsupported markets and unavailable results stay unresolved. Cancelled fixtures require explicit final cancellation; postponed fixtures stay pending. Display generated, pending, settled, profitable, loss, refund and partial outcomes, win rate and unit-stake return. Probability scores use only binary fully won/lost outcomes without pushes.
+
+Train updates from completed same-competition history. Choose a regularized Poisson candidate using chronological development data; evaluate it and incumbent on a later untouched block. Persist version, cutoff and evaluation, adopt only on improved Brier and log loss with minimum samples. Existing predictions never change. Explain absent recommendations with concrete coverage and validation diagnostics. No guaranteed results, profitability or model improvement claims.

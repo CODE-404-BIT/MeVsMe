@@ -1,6 +1,6 @@
 """Transport-independent dashboard routes. Callers enforce authentication."""
 ASSETS = {'/': ('index.html', 'text/html; charset=utf-8')}
-for name in ('app','odds-only','insights','performance','prediction-history','match-analysis','accuracy-policy'):
+for name in ('app','odds-only','insights','performance','prediction-history','match-analysis','accuracy-policy','multisport'):
     ASSETS['/'+name+'.js'] = (name+'.js', 'text/javascript; charset=utf-8')
 for name in ('app','insights','performance'):
     ASSETS['/'+name+'.css'] = (name+'.css', 'text/css; charset=utf-8')
@@ -9,6 +9,12 @@ for name in ('app','insights','performance'):
 def dispatch_api(app, method, path, args, data=None):
     if method == 'GET':
         if path == '/api/status':return 200, app.status()
+        if path == '/api/recommendations':
+            from datetime import datetime,timezone
+            from .dashboard import utc_window
+            from .multisport_recommendations import recommendation_payload
+            return 200,recommendation_payload(app.engine,utc_window(args['date'],int(args.get('offset',0)),
+                int(args.get('end_offset',0))),datetime.now(timezone.utc),args.get('sport','all'))
         if path == '/api/performance':return 200, app.performance()
         if path == '/api/prediction-history':
             from .performance import prediction_history

@@ -102,7 +102,7 @@ def team_summary(frame, team):
         'wins':sum(r['result']=='W' for r in recent)}
 
 
-def historical_patterns(frame, home, away):
+def historical_patterns(frame, home, away, include_all=False):
     if frame.empty:return []
     frame=frame.copy().sort_values('date')
     frame['home_team']=frame.home_team.map(team_key);frame['away_team']=frame.away_team.map(team_key)
@@ -114,7 +114,7 @@ def historical_patterns(frame, home, away):
             sample=valid.tail(window)
             if len(sample)<window:continue
             hits=int(sample.sum());trials=len(sample)
-            if hits/trials<.8:continue
+            if hits/trials<.8 and not include_all:continue
             low,high=beta_interval(hits,trials)
             results.append({'group':group,'label':label,'window':window,'hits':hits,'trials':trials,
                 'rate':hits/trials,'posterior_mean':beta_posterior_mean(hits,trials),'lower':low,'upper':high,
@@ -173,13 +173,13 @@ def predict_match(frame, home, away):
 
 
 @lru_cache(maxsize=24)
-def validate_competition(serialized):
+def validate_competition(serialized, window=40):
     """Chronological out-of-sample checks; no evaluation match enters its model."""
     frame=pd.read_json(__import__('io').StringIO(serialized),orient='records')
     frame['date']=pd.to_datetime(frame.date)
     frame=frame.sort_values('date')
     errors=[];baseline_errors=[];calibration=[]
-    for _,row in frame.tail(40).iterrows():
+    for _,row in frame.tail(window).iterrows():
         training=frame[frame.date<row.date]
         if len(training)<60:continue
         pred=predict_match(training,row.home_team,row.away_team)
@@ -190,7 +190,14 @@ def validate_competition(serialized):
         errors.append((p-actual)**2);baseline_errors.append((baseline-actual)**2)
         calibration.append({'probability':p,'outcome':actual})
     n=len(errors)
+    bins=[]
+    for i in range(5):
+        selected=[r for r in calibration if i/5<=r['probability']<(i+1)/5]
+        if len(selected)>=20:
+            bins.append({'count':len(selected),'gap':abs(sum(r['probability']-r['outcome'] for r in selected)/len(selected))})
+    calibrated=bool(n and sum(b['count'] for b in bins)/n>=.8 and all(b['gap']<=.1 for b in bins))
     return {'matches':n,'market':'Over 2.5 goals','brier':sum(errors)/n if n else None,
+        'calibration':bins,'calibrated':calibrated,
         'baseline_brier':sum(baseline_errors)/n if n else None,
         'passes':n>=20 and sum(errors)<=sum(baseline_errors),
         'note':'Chronological check for Over 2.5 only; other market probabilities remain unvalidated baselines.'}
@@ -203,7 +210,7 @@ def _forecast_model_cutoff(window, kickoff, now=None):
     return min(now,limit)
 
 
-def evidence_for(engine, window, query='', forecasts=True):
+def evidence_for(engine, window, query='', forecasts=True, all_competitions=False):
     from .league_scope import in_scope,fixture_metadata
     history=load_history(engine,window[0])
     with session_factory(engine)() as s:
@@ -219,7 +226,7 @@ def evidence_for(engine, window, query='', forecasts=True):
         matching=[f for f in matches if team_key(f.home_team)==team_key(home) and team_key(f.away_team)==team_key(away)]
         if matching:matches=matching
         else:matches=[Fixture(id=0,home_team=home,away_team=away,competition='',match_date=window[0].date(),status='SEARCH')]
-    else:
+    elif not all_competitions:
         matches=[f for f in matches if in_scope(f.competition,metadata.get(f.provider_id,{}).get('country'))]
     output=[]
     for f in matches:
@@ -253,8 +260,9 @@ def evidence_for(engine, window, query='', forecasts=True):
         if forecasts:forecast=apply_learned_forecast(engine,pool,home,away,forecast,_forecast_model_cutoff(window,f.kickoff))
         own_home=team_summary(pool,home);own_away=team_summary(pool,away)
         h2h=[] if pool.empty else pool[((pool.home_team==hk)&(pool.away_team==ak))|((pool.home_team==ak)&(pool.away_team==hk))].tail(10)
+        windows=historical_patterns(pool,home,away,include_all=True)
         output.append({'fixture_id':f.id,'home':home,'away':away,'competition':competition,'kickoff':f.kickoff.isoformat()+'Z' if f.kickoff else None,
-            'status':f.status,'individual':[own_home,own_away], 'patterns':historical_patterns(pool,home,away),
+            'status':f.status,'individual':[own_home,own_away], 'patterns':[p for p in windows if p['rate']>=.8], 'all_patterns':windows,
             'h2h_matches':len(h2h),'forecast':forecast})
     names=sorted(set(history.home_display)|set(history.away_display)) if not history.empty else []
     return {'matches':output,'historical_matches':len(history),'known_teams':names,
